@@ -51,6 +51,19 @@ public class Main {
 
                 gpioManager.getRedLed().high();
 
+                for (int i = 0; i < 200; i++) {
+                    gpioManager.getSummer().pulse(1);
+
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    gpioManager.getSummer().pulse(1);
+                }
+
+
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {

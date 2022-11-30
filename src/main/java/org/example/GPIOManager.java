@@ -14,6 +14,7 @@ public class GPIOManager {
     private final GpioPinDigitalInput doorSwitch;
     private final GpioPinDigitalOutput yellowLed;
     private final GpioPinDigitalOutput redLed;
+    private final GpioPinDigitalOutput summer;
 
 
     public GPIOManager() {
@@ -23,6 +24,7 @@ public class GPIOManager {
         this.doorSwitch = gpio.provisionDigitalInputPin(RaspiPin.GPIO_17, PinPullResistance.PULL_UP);
         this.yellowLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_21);
         this.redLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_13);
+        this.summer = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_24);
     }
 
     public GpioPinDigitalInput getDoorSwitch() {
@@ -35,5 +37,9 @@ public class GPIOManager {
 
     public GpioPinDigitalOutput getRedLed() {
         return redLed;
+    }
+
+    public GpioPinDigitalOutput getSummer() {
+        return summer;
     }
 }
