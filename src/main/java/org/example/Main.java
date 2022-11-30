@@ -1,7 +1,6 @@
 package org.example;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
-import com.pi4j.io.gpio.*;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import com.sun.net.httpserver.HttpServer;
@@ -11,6 +10,7 @@ import org.example.requests.StatusHandler;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -31,21 +31,25 @@ public class Main {
 
         System.out.println("Starting...........");
 
-       GpioFactory.setDefaultProvider(new RaspiGpioProvider(RaspiPinNumberingScheme.BROADCOM_PIN_NUMBERING));
+        File file = new File("status");
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+        String status = bufferedReader.readLine();
 
-        final GpioController gpio = GpioFactory.getInstance();
-        final GpioPinDigitalInput myButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_17, PinPullResistance.PULL_UP);
-        final GpioPinDigitalOutput yellowLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_21);
-        final GpioPinDigitalOutput redLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_13);
+        GPIOManager gpioManager = new GPIOManager();
 
-        myButton.setShutdownOptions(false);
-        myButton.addListener(new GpioPinListenerDigital() {
+        if (status.equals("1")) {
+            gpioManager.getYellowLed().high();
+        } else {
+            gpioManager.getYellowLed().low();
+        }
+
+        gpioManager.getDoorSwitch().setShutdownOptions(false);
+        gpioManager.getDoorSwitch().addListener(new GpioPinListenerDigital() {
             @Override
             public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
                 System.out.println(" --> GPIO PIN STATE CHANGE: " + event.getPin() + " = " + event.getState());
 
-                yellowLed.high();
-                redLed.high();
+                gpioManager.getRedLed().high();
 
                 try {
                     Thread.sleep(5000);
@@ -53,8 +57,7 @@ public class Main {
                     throw new RuntimeException(e);
                 }
 
-                yellowLed.low();
-                redLed.low();
+                gpioManager.getRedLed().low();
 
                 try {
                     PreparedStatement checkIfExistsStatement = connection.prepareStatement("SELECT * FROM user;");

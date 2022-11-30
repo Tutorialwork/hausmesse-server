@@ -2,6 +2,7 @@ package org.example.requests;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.example.GPIOManager;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,6 +16,13 @@ public class ChangeStatusHandler implements HttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpExchange.getRequestBody()));
         String newStatus = bufferedReader.readLine();
+
+        GPIOManager gpioManager = new GPIOManager();
+        if (newStatus.equals("1")) {
+            gpioManager.getYellowLed().high();
+        } else {
+            gpioManager.getYellowLed().low();
+        }
 
         if (newStatus == null) {
             String response = "Body is empty";
