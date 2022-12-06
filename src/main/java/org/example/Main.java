@@ -1,6 +1,7 @@
 package org.example;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
+import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import com.sun.net.httpserver.HttpServer;
@@ -47,7 +48,16 @@ public class Main {
         gpioManager.getDoorSwitch().addListener(new GpioPinListenerDigital() {
             @Override
             public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
-                System.out.println(" --> GPIO PIN STATE CHANGE: " + event.getPin() + " = " + event.getState());
+                try {
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+                    String status = bufferedReader.readLine();
+
+                    if (event.getState() == PinState.LOW || status.equals("0")) {
+                        return;
+                    }
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
 
                 gpioManager.getRedLed().high();
 
@@ -55,7 +65,7 @@ public class Main {
                     gpioManager.getSummer().pulse(1);
 
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(1);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
