@@ -1,6 +1,5 @@
 package org.example;
 
-import com.google.firebase.messaging.FirebaseMessagingException;
 import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
@@ -16,11 +15,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class Main {
 
     public static Connection connection;
+    public static GPIOManager gpioManagerInstance;
 
     public static void main(String[] args) throws IOException {
         SendNotification sendNotification = new SendNotification();
@@ -37,6 +36,7 @@ public class Main {
         String status = bufferedReader.readLine();
 
         GPIOManager gpioManager = new GPIOManager();
+        gpioManagerInstance = gpioManager;
 
         if (status.equals("1")) {
             gpioManager.getYellowLed().high();
@@ -87,11 +87,16 @@ public class Main {
                     ResultSet resultSet = checkIfExistsStatement.executeQuery();
 
                     while (resultSet.next()) {
-                        sendNotification.sendMessage(resultSet.getString("token"));
+                        try {
+                            sendNotification.sendMessage(resultSet.getString("token"));
+                        } catch (Exception exception) {
+                            System.out.println("Failed to send push notification");
+                            System.out.println(exception.getMessage());
+                        }
                     }
-                } catch (FirebaseMessagingException | SQLException e) {
-                    System.out.println("Failed to send push notification");
-                    System.out.println(e.getMessage());
+                } catch (Exception exception) {
+                    System.out.println("Failed to send push notifications or to query database");
+                    System.out.println(exception.getMessage());
                 }
             }
         });
